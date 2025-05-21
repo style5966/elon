@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엘론 머스크처럼 생각하기: 대화형 탐험</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- Visualization & Content Choices:
+        - Report Info: Chef vs. Cook analogy. Goal: Compare. Viz/Presentation: Side-by-side text blocks, clickable cards revealing traits. Interaction: Click to explore. Justification: Clear comparison of core concepts. Library/Method: HTML/CSS/JS.
+        - Report Info: Barriers (old software, fear, identity). Goal: Inform. Viz/Presentation: Clickable list items. Interaction: Click to expand details. Justification: Digestible presentation of obstacles. Library/Method: HTML/CSS/JS.
+        - Report Info: Three Revelations. Goal: Inform & Guide. Viz/Presentation: Accordion interface. Interaction: Click to expand/collapse. Justification: Organized and focused presentation of actionable insights. Library/Method: HTML/CSS/JS.
+        - Report Info: Musk's OS (Want/Reality Box). Goal: Explain Process & Apply. Viz/Presentation: Interactive HTML/CSS diagram + Input field & Button for Gemini API. Interaction: Click to highlight parts, input problem, click button to get First Principle questions. Justification: Visual explanation and AI-powered application of a key process. Library/Method: HTML/CSS/JS/Gemini API.
+        - Report Info: Grand Theft Life. Goal: Inspire & Brainstorm. Viz/Presentation: Input field & Button for Gemini API. Interaction: Input idea, click button to get AI-powered idea expansion. Justification: Encourages bold thinking with AI assistance. Library/Method: HTML/CSS/JS/Gemini API.
+        - Report Info: Self-reflection (Chef/Cook tendencies). Goal: Engage & Personalize. Viz/Presentation: Multiple-choice questions. Interaction: User selection, JS shows reflective text. Justification: Active user participation and personalized takeaway. Library/Method: HTML/CSS/JS.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: #f5f5f4; /* stone-100 */
+            color: #1f2937; /* gray-800 */
+        }
+        .section-title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 800;
+            color: #0369a1; /* sky-700 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+        }
+        .button {
+            background-color: #0284c7; /* sky-600 */
+            color: white;
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 700;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .button:hover {
+            background-color: #0369a1; /* sky-700 */
+        }
+        .button.disabled {
+            background-color: #94a3b8; /* slate-400 */
+            cursor: not-allowed;
+        }
+        .nav-button {
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            border-radius: 0.375rem; /* rounded-md */
+            color: #0369a1; /* sky-700 */
+            font-weight: 700;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .nav-button:hover, .nav-button.active {
+            background-color: #0369a1; /* sky-700 */
+            color: white;
+        }
+        .accordion-button {
+            width: 100%;
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0c4a6e; /* sky-800 */
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+            border: none;
+            border-radius: 0.5rem; /* rounded-lg */
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .accordion-button:hover {
+            background-color: #bae6fd; /* sky-200 */
+        }
+        .accordion-content {
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0 0 0.5rem 0.5rem; /* rounded-b-lg */
+            display: none;
+        }
+        .os-box {
+            border: 2px dashed #0ea5e9; /* sky-500 */
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+        }
+        .os-arrow {
+            font-size: 2rem;
+            color: #0ea5e9; /* sky-500 */
+            margin: 0 0.5rem;
+        }
+        .question-card {
+            background-color: #f0f9ff; /* sky-50 */
+            padding: 1.5rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            margin-bottom: 1rem;
+        }
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background-color: white;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .option-button:hover {
+            background-color: #f3f4f6; /* gray-100 */
+            border-color: #0284c7; /* sky-600 */
+        }
+        .option-button.selected {
+            background-color: #e0f2fe; /* sky-100 */
+            border-color: #0284c7; /* sky-600 */
+            font-weight: bold;
+        }
+        .reflection-text {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #fffbeb; /* amber-50 */
+            color: #78350f; /* amber-800 */
+            border-left: 4px solid #f59e0b; /* amber-500 */
+            border-radius: 0.25rem; /* rounded-sm */
+        }
+        .api-interaction-section {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background-color: #f0f9ff; /* sky-50 */
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        .api-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: white;
+            border: 1px solid #e0f2fe; /* sky-100 */
+            border-radius: 0.5rem; /* rounded-lg */
+            white-space: pre-wrap; /* To preserve line breaks from API response */
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Hamburger Menu for Mobile */
+        .hamburger-icon { display: none; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: absolute; top: 60px; left: 0; right: 0; background-color: white; flex-direction: column; padding: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .nav-links.active { display: flex; }
+            .hamburger-icon { display: block; cursor: pointer; font-size: 1.5rem; color: #0369a1; }
+            .nav-button { width: 100%; text-align: center; margin: 0.5rem 0; }
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-slate-800">
+
+    <nav class="bg-white shadow-md sticky top-0 z-50 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold text-sky-700">🚀 엘론 머스크처럼 생각하기</h1>
+            <div class="hamburger-icon" id="hamburgerIcon">☰</div>
+            <div class="nav-links" id="navLinks">
+                <a href="#intro" class="nav-button">소개</a>
+                <a href="#chef-vs-cook" class="nav-button">셰프 vs 요리사</a>
+                <a href="#barriers" class="nav-button">무엇이 우리를 막나?</a>
+                <a href="#revelations" class="nav-button">3가지 깨달음</a>
+                <a href="#musk-os" class="nav-button">머스크의 OS</a>
+                <a href="#gtl" class="nav-button">인생은 GTL!</a>
+                <a href="#reflection" class="nav-button">자가 진단</a>
+                <a href="#conclusion" class="nav-button">맺음말</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <section id="intro" class="py-12 md:py-16">
+            <h2 class="section-title">💡 엘론 머스크, 무엇이 다를까?</h2>
+            <div class="card max-w-3xl mx-auto text-center">
+                <p class="text-lg leading-relaxed">
+                    엘론 머스크의 성공은 단순히 뛰어난 지능이나 재능 때문만은 아닙니다. 그의 진짜 비밀 병기는 바로 **세상을 바라보고 문제를 해결하는 독특한 '사고방식(소프트웨어)'**에 있습니다. 이 여정을 통해 그의 생각의 핵심을 탐구하고, 우리 삶에 적용할 수 있는 통찰을 얻어봅시다. 이제 Gemini API를 활용한 ✨AI 기능✨으로 더욱 깊이 있는 탐험을 경험하세요!
+                </p>
+            </div>
+        </section>
+
+        <section id="chef-vs-cook" class="py-12 md:py-16 bg-sky-50 rounded-xl">
+            <h2 class="section-title">👨‍🍳 셰프 vs 🧑‍🍳 요리사: 당신의 선택은?</h2>
+            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">엘론 머스크는 세상을 '셰프'의 관점으로 바라봅니다. 기존의 레시피를 따르는 '요리사'와 근본 원리에서 새로운 것을 창조하는 '셰프'. 당신은 어느 쪽에 더 가깝나요? 아래 카드를 클릭해 각 특징을 살펴보세요.</p>
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div id="cookCard" class="card cursor-pointer">
+                    <h3 class="text-2xl font-bold text-amber-600 mb-3 text-center">🧑‍🍳 요리사 (Cook)</h3>
+                    <p class="mb-2">기존의 레시피(사회 통념, 관습)를 따릅니다.</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-600 hidden cook-details">
+                        <li>"원래 다들 이렇게 하니까..."</li>
+                        <li>"남들이 안 하는 건 위험해."</li>
+                        <li>안전함과 예측 가능성을 중시.</li>
+                        <li>변화보다는 안정을 추구.</li>
+                        <li>유추를 통한 추론에 의존.</li>
+                    </ul>
+                    <p class="text-sm text-center mt-4 text-sky-600 cook-prompt">클릭해서 자세히 보기</p>
+                </div>
+                <div id="chefCard" class="card cursor-pointer">
+                    <h3 class="text-2xl font-bold text-teal-600 mb-3 text-center">👨‍🍳 셰프 (Chef)</h3>
+                    <p class="mb-2">원재료(제1원리)에서 새로운 레시피를 창조합니다.</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-600 hidden chef-details">
+                        <li>"이 문제의 진짜 본질은 뭐지?"</li>
+                        <li>"왜 안돼? 어떻게 하면 가능할까?"</li>
+                        <li>끊임없는 실험과 개선을 추구.</li>
+                        <li>새로운 정보에 따라 전략을 수정.</li>
+                        <li>제1원리 추론을 사용.</li>
+                    </ul>
+                     <p class="text-sm text-center mt-4 text-sky-600 chef-prompt">클릭해서 자세히 보기</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="barriers" class="py-12 md:py-16">
+            <h2 class="section-title">🚧 무엇이 우리를 '요리사'에 머물게 할까?</h2>
+            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">우리 대부분은 '셰프'가 아닌 '요리사'로 살아갑니다. 왜 그럴까요? 우리 안의 보이지 않는 장벽들을 살펴보세요.</p>
+            <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <div class="card barrier-card" data-barrier="software">
+                    <h3 class="text-xl font-bold text-rose-600 mb-2">낡은 소프트웨어 🧠</h3>
+                    <p>오래된 생존 본능과 사회적으로 주입된 생각들.</p>
+                    <div class="barrier-details hidden mt-2 p-3 bg-rose-50 rounded">
+                        <p>어린 시절부터 "왜?"라는 질문 없이 받아들인 가르침, 부모 세대의 가치관, 사회적 통념 등이 우리의 사고방식을 제한합니다. 마치 오래된 컴퓨터 프로그램처럼요.</p>
+                    </div>
+                </div>
+                <div class="card barrier-card" data-barrier="fear">
+                    <h3 class="text-xl font-bold text-purple-600 mb-2">그릇된 공포 😨</h3>
+                    <p>실패와 타인의 시선에 대한 비합리적인 두려움.</p>
+                     <div class="barrier-details hidden mt-2 p-3 bg-purple-50 rounded">
+                        <p>"실패하면 어떡하지?", "남들이 나를 어떻게 볼까?" 하는 두려움은 새로운 시도를 막는 가장 큰 적입니다. 이 공포는 종종 과장되거나 비논리적입니다.</p>
+                    </div>
+                </div>
+                <div class="card barrier-card" data-barrier="identity">
+                    <h3 class="text-xl font-bold text-indigo-600 mb-2">잘못된 정체성 🆔</h3>
+                    <p>"나는 원래 이런 사람이야"라는 자기 한정.</p>
+                     <div class="barrier-details hidden mt-2 p-3 bg-indigo-50 rounded">
+                        <p>자신을 특정 틀 안에 가두고 변화를 거부하는 것은 성장의 기회를 차단합니다. 우리는 고정된 존재가 아니라 끊임없이 발전할 수 있는 가능성을 지니고 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="revelations" class="py-12 md:py-16 bg-sky-50 rounded-xl">
+            <h2 class="section-title">✨ '셰프'가 되기 위한 3가지 깨달음</h2>
+            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">'요리사'의 틀을 깨고 '셰프'처럼 생각하기 위해 필요한 마음가짐의 전환입니다. 각 항목을 클릭하여 자세한 내용을 확인해보세요.</p>
+            <div class="max-w-3xl mx-auto space-y-4">
+                <div>
+                    <button class="accordion-button">
+                        <span>1. "나는 아무것도 모른다!" 🤔</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>마치 옛날 홍수 지질학자들이 잘못된 전제에 갇혔던 것처럼, 우리도 잘못된 믿음이나 편견에 사로잡혀 있을 수 있습니다. "내가 아는 것이 전부가 아닐 수 있다"고 인정하는 겸손함이 진정한 배움의 시작입니다. 끊임없이 "왜?"라고 질문하고, 자신의 생각 밑바닥에 있는 검증되지 않은 확신들을 점검하세요.</p>
+                    </div>
+                </div>
+                <div>
+                    <button class="accordion-button">
+                        <span>2. "다른 사람들도 아무것도 모른다!" 🤷‍♂️</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>'벌거벗은 임금님' 이야기처럼, 대중의 의견이나 사회적 통념이 항상 옳은 것은 아닙니다. 많은 경우, 그것은 단지 오래된 관습이거나 누구도 의문을 제기하지 않은 빈 껍데기일 수 있습니다. 타인의 시선이나 평가에 과도하게 의존하기보다, 자신의 관찰과 논리를 믿는 '자신감'을 키우세요.</p>
+                    </div>
+                </div>
+                <div>
+                    <button class="accordion-button">
+                        <span>3. "인생은 GTL(Grand Theft Life) 게임이다!" 🎮</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>인생은 마치 GTA 게임처럼, 우리가 마음껏 탐험하고 도전하며 배울 수 있는 거대한 실험실입니다. 실패는 게임 오버가 아니라, 더 나은 전략을 배우는 과정일 뿐입니다. 불합리한 공포를 버리고, 대담하게 원하는 것을 시도하세요. 실패를 두려워하지 않는 '용기'가 혁신의 씨앗입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="musk-os" class="py-12 md:py-16">
+            <h2 class="section-title">⚙️ 엘론 머스크의 사고 OS (Operating System)</h2>
+            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">엘론 머스크는 어떻게 목표를 설정하고 달성할까요? 그의 생각 시스템을 간단한 그림으로 살펴봅시다. 각 요소를 클릭하면 설명을 볼 수 있습니다. '전략 수립' 단계에서는 ✨AI의 도움✨을 받아 제1원리 질문을 탐색해볼 수도 있습니다!</p>
+            <div class="card max-w-4xl mx-auto p-6 md:p-10">
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
+                    <div class="os-box" data-os="want">🎯 원해요 박스</div>
+                    <div class="os-arrow">➕</div>
+                    <div class="os-box" data-os="reality">🌍 현실 박스</div>
+                    <div class="os-arrow">➡️</div>
+                    <div class="os-box" data-os="pool">🏊 목표 풀</div>
+                </div>
+                <div class="flex flex-col items-center justify-center space-y-2">
+                     <div class="os-arrow">⬇️</div>
+                     <div class="os-box" data-os="strategy">🗺️ 전략 수립 (제1원리)</div>
+                     <div class="os-arrow">🔄</div>
+                     <div class="os-box" data-os="action">🚀 실행 및 수정</div>
+                </div>
+                <div id="os-explanation" class="mt-6 p-4 bg-sky-50 rounded-lg text-sky-800 min-h-[50px]">
+                    각 박스를 클릭하여 설명을 확인하세요.
+                </div>
+                <div id="first-principle-interaction" class="api-interaction-section hidden">
+                    <h3 class="text-xl font-bold text-sky-700 mb-3">✨ 제1원리 질문 탐색하기</h3>
+                    <p class="mb-2 text-slate-600">해결하고 싶은 문제나 달성하고 싶은 목표를 입력하고, AI가 생성하는 제1원리 질문들을 통해 문제의 본질을 파헤쳐 보세요.</p>
+                    <input type="text" id="problemInput" placeholder="예: 화성 여행 비용 절감" class="w-full p-2 border border-sky-300 rounded-md mb-3">
+                    <button id="getPrincipleQuestionsBtn" class="button">
+                        <span class="button-text">질문 생성하기</span>
+                        <div class="loading-spinner hidden"></div>
+                    </button>
+                    <div id="principleQuestionsResult" class="api-result mt-4 hidden"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="gtl" class="py-12 md:py-16 bg-amber-50 rounded-xl">
+            <h2 class="section-title text-amber-700">🎮 인생은 GTL! 대담하게 도전하라!</h2>
+            <div class="card max-w-3xl mx-auto text-center border-4 border-amber-400">
+                <p class="text-2xl font-bold mb-4">🚀 "실패는 옵션이다. 만약 실패하지 않고 있다면, 충분히 혁신적이지 않다는 뜻이다." - 엘론 머스크</p>
+                <p class="text-lg leading-relaxed mb-4">
+                    세상은 거대한 실험실입니다. 당신의 대담한 아이디어를 입력하고, ✨AI의 도움✨을 받아 구체적인 첫걸음과 영감을 얻어보세요!
+                </p>
+                <div class="api-interaction-section bg-amber-100">
+                     <input type="text" id="gtlIdeaInput" placeholder="나의 대담한 아이디어 (예: 개인용 비행 자동차 개발)" class="w-full p-2 border border-amber-300 rounded-md mb-3">
+                    <button id="expandGtlIdeaBtn" class="button bg-amber-500 hover:bg-amber-600">
+                        <span class="button-text">✨ 내 아이디어 구체화하기</span>
+                        <div class="loading-spinner hidden"></div>
+                    </button>
+                    <div id="gtlIdeaResult" class="api-result mt-4 hidden bg-white"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="reflection" class="py-12 md:py-16">
+            <h2 class="section-title">🤔 나는 셰프형? 요리사형? 자가 진단</h2>
+            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">몇 가지 질문을 통해 자신의 생각 경향을 되돌아보는 시간을 가져보세요. 정답은 없으니 솔직하게 선택해주세요.</p>
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div class="question-card">
+                    <p class="font-semibold mb-2">질문 1: 새로운 프로젝트를 시작할 때, 당신의 일반적인 접근 방식은?</p>
+                    <button class="option-button" data-question="1" data-type="cook">A. 과거 성공 사례나 업계 표준 방식을 먼저 찾아본다.</button>
+                    <button class="option-button" data-question="1" data-type="chef">B. 문제의 근본 원인부터 파악하고, 기존 방식에 의문을 제기하며 새로운 해결책을 모색한다.</button>
+                    <div class="reflection-text hidden" id="reflection-1"></div>
+                </div>
+                <div class="question-card">
+                    <p class="font-semibold mb-2">질문 2: 어려운 문제에 직면했을 때, 가장 먼저 드는 생각은?</p>
+                    <button class="option-button" data-question="2" data-type="cook">A. "이걸 어떻게 해결해야 할지 막막하다. 다른 사람들은 어떻게 했지?"</button>
+                    <button class="option-button" data-question="2" data-type="chef">B. "이 문제를 해결하기 위한 가장 기본적인 요소들은 무엇일까? 어떤 가설을 세우고 검증해볼 수 있을까?"</button>
+                    <div class="reflection-text hidden" id="reflection-2"></div>
+                </div>
+                <div class="question-card">
+                    <p class="font-semibold mb-2">질문 3: 주변 사람들이 모두 "A는 불가능해"라고 말할 때, 당신의 반응은?</p>
+                    <button class="option-button" data-question="3" data-type="cook">A. "다들 그렇게 말하는 걸 보니 정말 안 되나 보다."</button>
+                    <button class="option-button" data-question="3" data-type="chef">B. "왜 불가능하다고 생각하는 걸까? 그 근거는 무엇일까? 혹시 다른 관점에서 보면 가능하지 않을까?"</button>
+                    <div class="reflection-text hidden" id="reflection-3"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion" class="py-12 md:py-16 bg-sky-700 text-white rounded-xl">
+            <h2 class="section-title text-white">🚀 당신 안의 '셰프'를 깨우세요!</h2>
+            <div class="max-w-3xl mx-auto text-center">
+                <p class="text-lg leading-relaxed mb-6">
+                    엘론 머스크처럼 생각한다는 것은 완벽한 '셰프'가 되는 것이 아니라, 우리 안의 '셰프'적 가능성을 발견하고 키워나가는 여정입니다. 우리 모두는 생각하는 방식(소프트웨어)을 가지고 있으며, 이를 의식적으로 발전시킬 수 있습니다.
+                </p>
+                <p class="text-lg leading-relaxed mb-6">
+                    "도대체 무슨 일이 벌어지고 있는 거지?" 이 질문을 스스로에게 던지며 세상을 탐구하세요. 기존의 통념에 의문을 제기하고, 제1원리에서부터 사고하며, 대담하게 실행하세요. 이것이 바로 엘론 머스크가 우리에게 주는 가장 큰 영감입니다.
+                </p>
+                <p class="text-xl font-bold">당신의 위대한 여정을 응원합니다!</p>
+            </div>
+        </section>
+    </div>
+
+    <footer class="text-center py-8 text-slate-600">
+        <p>&copy; 2024 엘론 머스크 사고방식 탐험. 이 페이지는 교육적 목적으로 제작되었습니다.</p>
+    </footer>
+
+    <script>
+        // Navigation
+        const navButtons = document.querySelectorAll('.nav-button');
+        const sections = document.querySelectorAll('section');
+        const hamburgerIcon = document.getElementById('hamburgerIcon');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburgerIcon.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+        
+        navLinks.addEventListener('click', (e) => {
+            if (e.target.classList.contains('nav-button')) {
+                navLinks.classList.remove('active');
+            }
+        });
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 70) { // Adjusted offset for better active state
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+                if (button.getAttribute('href').substring(1) === current) {
+                    button.classList.add('active');
+                }
+            });
+        });
+
+        // Chef vs Cook cards
+        const cookCard = document.getElementById('cookCard');
+        const chefCard = document.getElementById('chefCard');
+        const cookDetails = cookCard.querySelector('.cook-details');
+        const chefDetails = chefCard.querySelector('.chef-details');
+        const cookPrompt = cookCard.querySelector('.cook-prompt');
+        const chefPrompt = chefCard.querySelector('.chef-prompt');
+
+        cookCard.addEventListener('click', () => {
+            cookDetails.classList.toggle('hidden');
+            cookPrompt.textContent = cookDetails.classList.contains('hidden') ? '클릭해서 자세히 보기' : '숨기기';
+        });
+        chefCard.addEventListener('click', () => {
+            chefDetails.classList.toggle('hidden');
+            chefPrompt.textContent = chefDetails.classList.contains('hidden') ? '클릭해서 자세히 보기' : '숨기기';
+        });
+
+        // Barriers cards
+        const barrierCards = document.querySelectorAll('.barrier-card');
+        barrierCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const details = card.querySelector('.barrier-details');
+                const isHidden = details.classList.contains('hidden');
+                
+                barrierCards.forEach(otherCard => {
+                    otherCard.querySelector('.barrier-details').classList.add('hidden');
+                });
+
+                if (isHidden) {
+                    details.classList.remove('hidden');
+                } else {
+                    details.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Accordion
+        const accordionButtons = document.querySelectorAll('.accordion-button');
+        accordionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('.accordion-icon');
+                const isContentVisible = content.style.display === 'block';
+                
+                accordionButtons.forEach(otherButton => {
+                    if (otherButton !== button) {
+                        otherButton.nextElementSibling.style.display = 'none';
+                        otherButton.querySelector('.accordion-icon').textContent = '+';
+                    }
+                });
+
+                if (isContentVisible) {
+                    content.style.display = 'none';
+                    icon.textContent = '+';
+                } else {
+                    content.style.display = 'block';
+                    icon.textContent = '-';
+                }
+            });
+        });
+
+        // Musk's OS
+        const osBoxes = document.querySelectorAll('.os-box');
+        const osExplanation = document.getElementById('os-explanation');
+        const firstPrincipleInteractionDiv = document.getElementById('first-principle-interaction');
+        const explanations = {
+            want: "🎯 원해요 박스: 현재 상황을 바꾸고 싶은 간절한 목표, 열망, 비전이 담긴 곳입니다. '인류의 미래에 기여하고 싶다'와 같은 큰 그림일 수 있습니다.",
+            reality: "🌍 현실 박스: 현재 내가 가진 자원, 기술 수준, 시장 상황 등 객관적인 현실을 담고 있습니다. 냉철한 자기 평가와 세상에 대한 이해가 필요합니다.",
+            pool: "🏊 목표 풀: '원해요 박스'와 '현실 박스'가 만나는 지점입니다. 즉, 현재 실현 가능하면서도 내가 간절히 원하는 목표들의 집합입니다.",
+            strategy: "🗺️ 전략 수립 (제1원리): 목표 풀에서 선택한 목표를 달성하기 위한 구체적인 계획입니다. 이때 '제1원리 추론'을 사용하여 기존의 방식이 아닌, 문제의 근본에서부터 가장 효율적인 방법을 찾습니다. 아래 AI 기능을 사용해 제1원리 질문을 탐색해보세요!",
+            action: "🚀 실행 및 수정: 수립된 전략을 실제로 실행하고, 그 과정에서 얻는 새로운 정보와 데이터에 따라 끊임없이 전략을 실험하고 수정하며 목표에 다가갑니다. 이 과정은 반복적인 루프입니다."
+        };
+
+        osBoxes.forEach(box => {
+            box.addEventListener('click', () => {
+                const key = box.dataset.os;
+                osExplanation.textContent = explanations[key] || "각 박스를 클릭하여 설명을 확인하세요.";
+                osBoxes.forEach(b => b.style.borderColor = '#0ea5e9'); 
+                box.style.borderColor = '#0284c7'; 
+
+                if (key === 'strategy') {
+                    firstPrincipleInteractionDiv.classList.remove('hidden');
+                } else {
+                    firstPrincipleInteractionDiv.classList.add('hidden');
+                }
+            });
+        });
+
+        // Self-Reflection Quiz
+        const optionButtons = document.querySelectorAll('.option-button');
+        const reflectionTextsData = {
+            q1_cook: "과거 사례나 표준을 따르는 것은 안정적일 수 있지만, 때로는 새로운 가능성을 제한할 수 있어요. 기존 방식에 '왜?'라는 질문을 던져보는 것은 어떨까요?",
+            q1_chef: "문제의 근본부터 파고드는 것은 '셰프'적 사고의 핵심입니다! 이런 접근은 혁신적인 해결책으로 이어질 수 있습니다.",
+            q2_cook: "막막함을 느낄 때 다른 사람의 경험을 참고하는 것도 방법이지만, 스스로 문제를 분해하고 분석하는 힘을 기르는 것이 중요해요.",
+            q2_chef: "문제를 기본 요소로 나누고 가설을 세우는 것은 과학자적 접근이자 '셰프'의 방식입니다. 복잡한 문제도 이렇게 풀어나갈 수 있습니다.",
+            q3_cook: "주변의 의견은 중요하지만, 때로는 집단적 통념이 진실을 가릴 수도 있습니다. 모두가 '아니오'라고 할 때 '왜?'라고 묻는 용기가 필요해요.",
+            q3_chef: "불가능해 보이는 상황에서도 가능성을 탐색하는 것은 '셰프'의 중요한 특징입니다. 비판적 사고와 독립적 판단이 빛을 발하는 순간이죠."
+        };
+
+        optionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const question = button.dataset.question;
+                const type = button.dataset.type;
+                const reflectionTextElement = document.getElementById(`reflection-${question}`);
+                
+                document.querySelectorAll(`.option-button[data-question="${question}"]`).forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                button.classList.add('selected');
+
+                reflectionTextElement.textContent = reflectionTextsData[`q${question}_${type}`];
+                reflectionTextElement.classList.remove('hidden');
+            });
+        });
+
+        // Gemini API Integration
+        const apiKey = ""; // Provided by Canvas environment
+
+        async function callGeminiAPI(prompt, buttonElement, resultElement) {
+            const buttonText = buttonElement.querySelector('.button-text');
+            const spinner = buttonElement.querySelector('.loading-spinner');
+
+            buttonText.classList.add('hidden');
+            spinner.classList.remove('hidden');
+            buttonElement.disabled = true;
+            buttonElement.classList.add('disabled');
+            resultElement.classList.add('hidden');
+            resultElement.textContent = '';
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API 오류: ${response.status} - ${errorData.error?.message || '알 수 없는 오류'}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    resultElement.textContent = text;
+                    resultElement.classList.remove('hidden');
+                } else {
+                    resultElement.textContent = "AI로부터 응답을 받지 못했습니다. 다시 시도해 주세요.";
+                    resultElement.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Gemini API 호출 중 오류 발생:", error);
+                resultElement.textContent = `오류가 발생했습니다: ${error.message}. 잠시 후 다시 시도해 주세요.`;
+                resultElement.classList.remove('hidden');
+            } finally {
+                buttonText.classList.remove('hidden');
+                spinner.classList.add('hidden');
+                buttonElement.disabled = false;
+                buttonElement.classList.remove('disabled');
+            }
+        }
+
+        // Musk's OS - First Principle Questions
+        const getPrincipleQuestionsBtn = document.getElementById('getPrincipleQuestionsBtn');
+        const problemInput = document.getElementById('problemInput');
+        const principleQuestionsResult = document.getElementById('principleQuestionsResult');
+
+        getPrincipleQuestionsBtn.addEventListener('click', () => {
+            const problem = problemInput.value.trim();
+            if (!problem) {
+                principleQuestionsResult.textContent = "먼저 문제나 목표를 입력해주세요.";
+                principleQuestionsResult.classList.remove('hidden');
+                return;
+            }
+            const prompt = `다음 문제/목표에 대해 제1원리 사고방식으로 심층 질문 3가지를 생성해 주세요: "${problem}". 각 질문은 사용자가 문제의 근본 원인을 파악하고 기존의 가정에 도전하는 데 도움이 되어야 합니다. 간결하고 명확하게, 한국어로 질문해 주세요. 각 질문은 새 줄로 구분해주세요.`;
+            callGeminiAPI(prompt, getPrincipleQuestionsBtn, principleQuestionsResult);
+        });
+
+        // GTL Idea Expansion
+        const expandGtlIdeaBtn = document.getElementById('expandGtlIdeaBtn');
+        const gtlIdeaInput = document.getElementById('gtlIdeaInput');
+        const gtlIdeaResult = document.getElementById('gtlIdeaResult');
+
+        expandGtlIdeaBtn.addEventListener('click', () => {
+            const idea = gtlIdeaInput.value.trim();
+            if (!idea) {
+                gtlIdeaResult.textContent = "먼저 당신의 대담한 아이디어를 입력해주세요.";
+                gtlIdeaResult.classList.remove('hidden');
+                return;
+            }
+            const prompt = `다음은 사용자의 대담한 아이디어입니다: "${idea}". 이 아이디어를 구체화하고 첫 단계를 내딛는 데 도움이 될 수 있는 창의적이고 실행 가능한 제안 3가지를 엘론 머스크 스타일의 격려와 함께 한국어로 제공해주세요. 각 제안은 사용자가 고정관념을 깨고 대담하게 도전하도록 영감을 주어야 합니다. 답변은 마크다운 형식 없이 일반 텍스트로, 각 제안과 격려는 명확하게 구분하여 작성해주세요.`;
+            callGeminiAPI(prompt, expandGtlIdeaBtn, gtlIdeaResult);
+        });
+
+    </script>
+</body>
+</html>
