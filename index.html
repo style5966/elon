@@ -3,604 +3,483 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>엘론 머스크처럼 생각하기: 대화형 탐험</title>
+    <title>인터랙티브 유럽 3국 여행 가이드</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
-    <!-- Visualization & Content Choices:
-        - Report Info: Chef vs. Cook analogy. Goal: Compare. Viz/Presentation: Side-by-side text blocks, clickable cards revealing traits. Interaction: Click to explore. Justification: Clear comparison of core concepts. Library/Method: HTML/CSS/JS.
-        - Report Info: Barriers (old software, fear, identity). Goal: Inform. Viz/Presentation: Clickable list items. Interaction: Click to expand details. Justification: Digestible presentation of obstacles. Library/Method: HTML/CSS/JS.
-        - Report Info: Three Revelations. Goal: Inform & Guide. Viz/Presentation: Accordion interface. Interaction: Click to expand/collapse. Justification: Organized and focused presentation of actionable insights. Library/Method: HTML/CSS/JS.
-        - Report Info: Musk's OS (Want/Reality Box). Goal: Explain Process & Apply. Viz/Presentation: Interactive HTML/CSS diagram + Input field & Button for Gemini API. Interaction: Click to highlight parts, input problem, click button to get First Principle questions. Justification: Visual explanation and AI-powered application of a key process. Library/Method: HTML/CSS/JS/Gemini API.
-        - Report Info: Grand Theft Life. Goal: Inspire & Brainstorm. Viz/Presentation: Input field & Button for Gemini API. Interaction: Input idea, click button to get AI-powered idea expansion. Justification: Encourages bold thinking with AI assistance. Library/Method: HTML/CSS/JS/Gemini API.
-        - Report Info: Self-reflection (Chef/Cook tendencies). Goal: Engage & Personalize. Viz/Presentation: Multiple-choice questions. Interaction: User selection, JS shows reflective text. Justification: Active user participation and personalized takeaway. Library/Method: HTML/CSS/JS.
-        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chosen Palette: Warm Neutrals (bg-stone-50, text-stone-800) with a Teal accent (teal-600) -->
+    <!-- Application Structure Plan: A top-level tabbed navigation SPA. The main navigation switches between countries (Italy, France, Croatia). Each country page has a sub-navigation to select a city. City content is displayed in interactive, collapsible cards for attractions, food, and lodging. This hierarchical structure (Country -> City -> Category) is intuitive for travel planning, prevents information overload, and allows users to explore content without scrolling endlessly or reloading the page. It transforms a static document into a user-driven exploratory tool. An interactive chart is added for comparing cities by travel style, providing a quick visual summary. -->
+    <!-- Visualization & Content Choices: 
+        - Goal: Main Navigation -> Method: HTML/JS Tabs -> Interaction: Click to switch country views -> Justification: Creates a seamless SPA experience without page reloads.
+        - Goal: City Sub-Navigation -> Method: HTML/JS Tabs -> Interaction: Click to switch city views within a country -> Justification: Organizes dense information logically.
+        - Goal: Detailed Content (Attractions, Food) -> Method: HTML/Tailwind/JS Accordion Cards -> Interaction: Click to expand/collapse -> Justification: Keeps the UI clean and scannable.
+        - Goal: Compare City Characteristics -> Method: Chart.js Horizontal Bar Chart -> Interaction: Hover for details -> Justification: Provides a quick, data-driven visual comparison for different travel styles, which is more engaging than text.
+        - Goal: Visual Cues -> Method: Unicode Icons (Font Awesome) -> Interaction: None (static) -> Justification: Lightweight, no-SVG method to visually distinguish content categories.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
-            font-family: 'Nanum Gothic', sans-serif;
-            background-color: #f5f5f4; /* stone-100 */
-            color: #1f2937; /* gray-800 */
-        }
-        .section-title {
-            font-size: 2.25rem; /* text-4xl */
-            font-weight: 800;
-            color: #0369a1; /* sky-700 */
-            margin-bottom: 1.5rem; /* mb-6 */
-            text-align: center;
-        }
-        .card {
-            background-color: white;
-            border-radius: 0.75rem; /* rounded-xl */
-            padding: 1.5rem; /* p-6 */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
-        }
-        .button {
-            background-color: #0284c7; /* sky-600 */
-            color: white;
-            padding: 0.75rem 1.5rem; /* py-3 px-6 */
-            border-radius: 0.5rem; /* rounded-lg */
-            font-weight: 700;
-            transition: background-color 0.3s ease;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .button:hover {
-            background-color: #0369a1; /* sky-700 */
-        }
-        .button.disabled {
-            background-color: #94a3b8; /* slate-400 */
-            cursor: not-allowed;
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
         }
         .nav-button {
-            padding: 0.5rem 1rem;
-            margin: 0 0.25rem;
-            border-radius: 0.375rem; /* rounded-md */
-            color: #0369a1; /* sky-700 */
-            font-weight: 700;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: all 0.3s ease;
         }
-        .nav-button:hover, .nav-button.active {
-            background-color: #0369a1; /* sky-700 */
+        .nav-button.active {
+            background-color: #0d9488; /* teal-600 */
             color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-        .accordion-button {
+        .content-card {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card-content {
+            max-height: 0;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+            overflow: hidden;
+        }
+        .card-content.show {
+            max-height: 2000px; /* Adjust as needed */
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .chart-container {
+            position: relative;
             width: 100%;
-            background-color: #e0f2fe; /* sky-100 */
-            color: #0c4a6e; /* sky-800 */
-            padding: 1rem;
-            text-align: left;
-            font-weight: 700;
-            border: none;
-            border-radius: 0.5rem; /* rounded-lg */
-            cursor: pointer;
-            transition: background-color 0.3s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
         }
-        .accordion-button:hover {
-            background-color: #bae6fd; /* sky-200 */
-        }
-        .accordion-content {
-            padding: 1rem;
-            background-color: white;
-            border-radius: 0 0 0.5rem 0.5rem; /* rounded-b-lg */
-            display: none;
-        }
-        .os-box {
-            border: 2px dashed #0ea5e9; /* sky-500 */
-            padding: 1rem;
-            margin: 0.5rem;
-            border-radius: 0.5rem;
-            text-align: center;
-            cursor: pointer;
-        }
-        .os-arrow {
-            font-size: 2rem;
-            color: #0ea5e9; /* sky-500 */
-            margin: 0 0.5rem;
-        }
-        .question-card {
-            background-color: #f0f9ff; /* sky-50 */
-            padding: 1.5rem;
-            border-radius: 0.75rem; /* rounded-xl */
-            margin-bottom: 1rem;
-        }
-        .option-button {
-            display: block;
-            width: 100%;
-            text-align: left;
-            background-color: white;
-            border: 1px solid #e5e7eb; /* gray-200 */
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            border-radius: 0.5rem; /* rounded-lg */
-            cursor: pointer;
-            transition: background-color 0.2s, border-color 0.2s;
-        }
-        .option-button:hover {
-            background-color: #f3f4f6; /* gray-100 */
-            border-color: #0284c7; /* sky-600 */
-        }
-        .option-button.selected {
-            background-color: #e0f2fe; /* sky-100 */
-            border-color: #0284c7; /* sky-600 */
-            font-weight: bold;
-        }
-        .reflection-text {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #fffbeb; /* amber-50 */
-            color: #78350f; /* amber-800 */
-            border-left: 4px solid #f59e0b; /* amber-500 */
-            border-radius: 0.25rem; /* rounded-sm */
-        }
-        .api-interaction-section {
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            background-color: #f0f9ff; /* sky-50 */
-            border-radius: 0.5rem; /* rounded-lg */
-        }
-        .api-result {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: white;
-            border: 1px solid #e0f2fe; /* sky-100 */
-            border-radius: 0.5rem; /* rounded-lg */
-            white-space: pre-wrap; /* To preserve line breaks from API response */
-        }
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        /* Hamburger Menu for Mobile */
-        .hamburger-icon { display: none; }
         @media (max-width: 768px) {
-            .nav-links { display: none; position: absolute; top: 60px; left: 0; right: 0; background-color: white; flex-direction: column; padding: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            .nav-links.active { display: flex; }
-            .hamburger-icon { display: block; cursor: pointer; font-size: 1.5rem; color: #0369a1; }
-            .nav-button { width: 100%; text-align: center; margin: 0.5rem 0; }
+            .chart-container {
+                height: 500px;
+            }
         }
     </style>
 </head>
-<body class="bg-stone-100 text-slate-800">
+<body class="text-stone-800">
 
-    <nav class="bg-white shadow-md sticky top-0 z-50 p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold text-sky-700">🚀 엘론 머스크처럼 생각하기</h1>
-            <div class="hamburger-icon" id="hamburgerIcon">☰</div>
-            <div class="nav-links" id="navLinks">
-                <a href="#intro" class="nav-button">소개</a>
-                <a href="#chef-vs-cook" class="nav-button">셰프 vs 요리사</a>
-                <a href="#barriers" class="nav-button">무엇이 우리를 막나?</a>
-                <a href="#revelations" class="nav-button">3가지 깨달음</a>
-                <a href="#musk-os" class="nav-button">머스크의 OS</a>
-                <a href="#gtl" class="nav-button">인생은 GTL!</a>
-                <a href="#reflection" class="nav-button">자가 진단</a>
-                <a href="#conclusion" class="nav-button">맺음말</a>
-            </div>
-        </div>
-    </nav>
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
 
-    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-teal-700 mb-2">유럽 3국 핵심 여행 가이드</h1>
+            <p class="text-lg text-stone-600">이탈리아, 파리, 크로아티아의 모든 것을 인터랙티브하게 탐색해보세요.</p>
+        </header>
 
-        <section id="intro" class="py-12 md:py-16">
-            <h2 class="section-title">💡 엘론 머스크, 무엇이 다를까?</h2>
-            <div class="card max-w-3xl mx-auto text-center">
-                <p class="text-lg leading-relaxed">
-                    엘론 머스크의 성공은 단순히 뛰어난 지능이나 재능 때문만은 아니다. 그의 진짜 비밀 병기는 바로 세상을 바라보고 문제를 해결하는 독특한 '사고방식(소프트웨어)'에 있다.
-                </p>
-            </div>
-        </section>
+        <nav id="main-nav" class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+            <button data-target="italy" class="nav-button active text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-sm hover:bg-teal-500 hover:text-white">🇮🇹 이탈리아</button>
+            <button data-target="france" class="nav-button text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-sm hover:bg-teal-500 hover:text-white">🇫🇷 파리</button>
+            <button data-target="croatia" class="nav-button text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-sm hover:bg-teal-500 hover:text-white">🇭🇷 크로아티아</button>
+            <button data-target="chart" class="nav-button text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-sm hover:bg-teal-500 hover:text-white">📊 여행 스타일 분석</button>
+        </nav>
 
-        <section id="chef-vs-cook" class="py-12 md:py-16 bg-sky-50 rounded-xl">
-            <h2 class="section-title">👨‍🍳 셰프 vs 🧑‍🍳 요리사: 당신의 선택은?</h2>
-            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">엘론 머스크는 세상을 '셰프'의 관점으로 바라본다. 기존의 레시피를 따르는 '요리사'와 근본 원리에서 새로운 것을 창조하는 '셰프'. 우리는 어느 쪽에 더 가까울까? 아래 카드를 클릭해 각 특징을 살펴보자.</p>
-            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                <div id="cookCard" class="card cursor-pointer">
-                    <h3 class="text-2xl font-bold text-amber-600 mb-3 text-center">🧑‍🍳 요리사 (Cook)</h3>
-                    <p class="mb-2">기존의 레시피(사회 통념, 관습)를 따른다.</p>
-                    <ul class="list-disc list-inside space-y-1 text-slate-600 hidden cook-details">
-                        <li>"원래 다들 이렇게 하니까..."</li>
-                        <li>"남들이 안 하는 건 위험해."</li>
-                        <li>안전함과 예측 가능성을 중시.</li>
-                        <li>변화보다는 안정을 추구.</li>
-                        <li>유추를 통한 추론에 의존.</li>
-                    </ul>
-                    <p class="text-sm text-center mt-4 text-sky-600 cook-prompt">클릭해서 자세히 보기</p>
-                </div>
-                <div id="chefCard" class="card cursor-pointer">
-                    <h3 class="text-2xl font-bold text-teal-600 mb-3 text-center">👨‍🍳 셰프 (Chef)</h3>
-                    <p class="mb-2">원재료(제1원리)에서 새로운 레시피를 창조한다.</p>
-                    <ul class="list-disc list-inside space-y-1 text-slate-600 hidden chef-details">
-                        <li>"이 문제의 진짜 본질은 뭐지?"</li>
-                        <li>"왜 안돼? 어떻게 하면 가능할까?"</li>
-                        <li>끊임없는 실험과 개선을 추구.</li>
-                        <li>새로운 정보에 따라 전략을 수정.</li>
-                        <li>제1원리 추론을 사용.</li>
-                    </ul>
-                     <p class="text-sm text-center mt-4 text-sky-600 chef-prompt">클릭해서 자세히 보기</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="barriers" class="py-12 md:py-16">
-            <h2 class="section-title">🚧 무엇이 우리를 '요리사'에 머물게 할까?</h2>
-            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">우리 대부분은 '셰프'가 아닌 '요리사'로 살아간다. 왜 그럴까? 우리 안의 보이지 않는 장벽들을 살펴보자. (아래 박스를 클릭하면 상세 내용을 볼 수 있다.)</p>
-            <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                <div class="card barrier-card" data-barrier="software">
-                    <h3 class="text-xl font-bold text-rose-600 mb-2">낡은 소프트웨어 🧠</h3>
-                    <p>오래된 생존 본능과 사회적으로 주입된 생각들.</p>
-                    <div class="barrier-details hidden mt-2 p-3 bg-rose-50 rounded">
-                        <p>어린 시절부터 "왜?"라는 질문 없이 받아들인 가르침, 부모 세대의 가치관, 사회적 통념 등이 우리의 사고방식을 제한한다. 마치 오래된 컴퓨터 프로그램처럼.</p>
+        <main>
+            <!-- Italy Content -->
+            <div id="italy" class="content-section">
+                <div class="text-center p-4 mb-6 bg-white rounded-lg shadow-md">
+                    <div id="italy-nav" class="flex flex-wrap justify-center gap-2">
+                        <button data-city="rome" class="city-btn italy-city active bg-teal-100 text-teal-800 py-2 px-4 rounded-md font-medium">로마</button>
+                        <button data-city="florence" class="city-btn italy-city bg-gray-100 text-gray-800 py-2 px-4 rounded-md font-medium">피렌체</button>
+                        <button data-city="venice" class="city-btn italy-city bg-gray-100 text-gray-800 py-2 px-4 rounded-md font-medium">베네치아</button>
+                        <button data-city="dolomiti" class="city-btn italy-city bg-gray-100 text-gray-800 py-2 px-4 rounded-md font-medium">돌로미티</button>
                     </div>
                 </div>
-                <div class="card barrier-card" data-barrier="fear">
-                    <h3 class="text-xl font-bold text-purple-600 mb-2">그릇된 공포 😨</h3>
-                    <p>실패와 타인의 시선에 대한 비합리적인 두려움.</p>
-                     <div class="barrier-details hidden mt-2 p-3 bg-purple-50 rounded">
-                        <p>"실패하면 어떡하지?", "남들이 나를 어떻게 볼까?" 하는 두려움은 새로운 시도를 막는 가장 큰 적이다. 이 공포는 종종 과장되거나 비논리적이다.</p>
+                
+                <div id="rome" class="city-content italy-city-content active">
+                    <h2 class="text-3xl font-bold mb-4 text-center">🏛️ 로마 (Rome): 영원한 도시, 살아있는 박물관</h2>
+                    <div class="space-y-4">
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                            <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>📍 꼭 가봐야 할 명소</span><i class="fa fa-chevron-down"></i></h3>
+                            <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>고대 로마의 영광:</b> 콜로세움, 포로 로마노, 판테온</li>
+                                    <li><b>바티칸 시국:</b> 바티칸 박물관, 성 베드로 대성당 (사전 예약 필수)</li>
+                                    <li><b>로마 시내의 보석들:</b> 트레비 분수, 스페인 계단, 나보나 광장</li>
+                                    <li><b>로맨틱 전망:</b> 자니콜로 언덕(노을), 아벤티노 언덕(오렌지 정원 & 열쇠구멍 뷰), 핀초 언덕</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                            <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🍝 추천 맛집</span><i class="fa fa-chevron-down"></i></h3>
+                            <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>Da Enzo al 29:</b> 현지인들이 사랑하는 트라스테베레 찐맛집</li>
+                                    <li><b>La Carbonara:</b> 매콤한 `아마트리치아나` 파스타의 진수</li>
+                                    <li><b>Pizzarium:</b> 로마식 조각 피자 `피자 알 타글리오`의 성지</li>
+                                    <li><b>Tonnarello:</b> 언제나 활기 넘치는 로마 전통 파스타 맛집</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                            <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🏨 추천 숙소</span><i class="fa fa-chevron-down"></i></h3>
+                            <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>호텔 아르테미데 (4성급):</b> 뛰어난 교통과 높은 청결도</li>
+                                    <li><b>47 부티크 호텔:</b> 로마 시내 중심의 훌륭한 위치</li>
+                                    <li><b>NH 컬렉션 로마 팔라초 친퀘첸토:</b> 위치와 가성비를 모두 잡은 호텔</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card barrier-card" data-barrier="identity">
-                    <h3 class="text-xl font-bold text-indigo-600 mb-2">잘못된 정체성 🆔</h3>
-                    <p>"나는 원래 이런 사람이야"라는 자기 한정.</p>
-                     <div class="barrier-details hidden mt-2 p-3 bg-indigo-50 rounded">
-                        <p>자신을 특정 틀 안에 가두고 변화를 거부하는 것은 성장의 기회를 차단한다. 우리는 고정된 존재가 아니라 끊임없이 발전할 수 있는 가능성을 지니고 있다.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <section id="revelations" class="py-12 md:py-16 bg-sky-50 rounded-xl">
-            <h2 class="section-title">✨ '셰프'가 되기 위한 3가지 깨달음</h2>
-            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">'요리사'의 틀을 깨고 '셰프'처럼 생각하기 위해 필요한 마음가짐의 전환이다. 각 항목을 클릭하여 자세한 내용을 확인해보자.</p>
-            <div class="max-w-3xl mx-auto space-y-4">
-                <div>
-                    <button class="accordion-button">
-                        <span>1. "나는 아무것도 모른다!" 🤔</span>
-                        <span class="accordion-icon">+</span>
-                    </button>
-                    <div class="accordion-content">
-                        <p>마치 옛날 홍수 지질학자들이 잘못된 전제에 갇혔던 것처럼, 우리도 잘못된 믿음이나 편견에 사로잡혀 있을 수 있다. "내가 아는 것이 전부가 아닐 수 있다"고 인정하는 겸손함이 진정한 배움의 시작이다. 끊임없이 "왜?"라고 질문하고, 자신의 생각 밑바닥에 있는 검증되지 않은 확신들을 점검하자.</p>
+                <div id="florence" class="city-content italy-city-content hidden">
+                    <h2 class="text-3xl font-bold mb-4 text-center">⚜️ 피렌체 (Firenze): 냉정과 열정 사이, 예술과 낭만</h2>
+                    <div class="space-y-4">
+                       <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                            <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>📍 꼭 가봐야 할 명소</span><i class="fa fa-chevron-down"></i></h3>
+                            <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>피렌체 두오모:</b> 쿠폴라에 올라 황홀한 피렌체 전경 감상</li>
+                                    <li><b>우피치 & 아카데미아 미술관:</b> 르네상스 예술의 보고, 다비드상을 만나는 곳 (예약 필수)</li>
+                                    <li><b>미켈란젤로 광장:</b> 피렌체 최고의 일몰 명소, 엽서 속 풍경</li>
+                                    <li><b>베키오 다리:</b> 아르노 강 위의 상징적인 다리</li>
+                                    <li><b>올트라르노 지구:</b> 가죽, 종이 등 장인들의 숨결이 느껴지는 공방 거리</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                            <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🍝 추천 맛집</span><i class="fa fa-chevron-down"></i></h3>
+                            <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>All'Antico Vinaio:</b> 전 세계에서 찾아오는 인생 파니니 맛집</li>
+                                    <li><b>Trattoria Zà Zà:</b> `비스테카 알라 피오렌티나`와 `리코타 만두`가 유명</li>
+                                    <li><b>피렌체 중앙시장 (네르보네):</b> `람프레도토`(곱창버거) 맛보기</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🏨 추천 숙소</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                               <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>호텔 다비드:</b> 두오모 5분 거리, 최고의 가성비</li>
+                                    <li><b>플러스 플로렌스:</b> 현대적 감각의 부티크 호텔</li>
+                               </ul>
+                           </div>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <button class="accordion-button">
-                        <span>2. "다른 사람들도 아무것도 모른다!" 🤷‍♂️</span>
-                        <span class="accordion-icon">+</span>
-                    </button>
-                    <div class="accordion-content">
-                        <p>'벌거벗은 임금님' 이야기처럼, 대중의 의견이나 사회적 통념이 항상 옳은 것은 아니다. 많은 경우, 그것은 단지 오래된 관습이거나 누구도 의문을 제기하지 않은 빈 껍데기일 수 있다. 타인의 시선이나 평가에 과도하게 의존하기보다, 자신의 관찰과 논리를 믿는 '자신감'을 키우자.</p>
+
+                <div id="venice" class="city-content italy-city-content hidden">
+                    <h2 class="text-3xl font-bold mb-4 text-center">🛶 베네치아 (Venezia): 물의 도시, 미로 같은 매력</h2>
+                    <div class="space-y-4">
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>📍 꼭 가봐야 할 명소</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>산 마르코 광장 & 주변:</b> 베네치아의 심장 (산 마르코 대성당, 두칼레 궁전, 탄식의 다리)</li>
+                                    <li><b>리알토 다리:</b> 그랜드 카날을 가로지르는 가장 유명한 다리</li>
+                                    <li><b>무라노 & 부라노 섬:</b> 무라노의 유리 공예와 부라노의 알록달록한 집들</li>
+                                    <li><b>리브레리아 아쿠아 알타:</b> 세상에서 가장 독특한 서점</li>
+                                </ul>
+                           </div>
+                        </div>
+                         <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>✨ 특별한 경험</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>곤돌라 & 바포레토:</b> 낭만적인 곤돌라 체험과 편리한 수상버스</li>
+                                    <li><b>바카로 투어:</b> 현지 선술집에서 `치케티`(안주)와 와인 즐기기</li>
+                                    <li><b>산 조르조 마조레 성당 종탑:</b> 산 마르코 광장을 가장 아름답게 조망할 수 있는 최고의 뷰포인트</li>
+                                </ul>
+                           </div>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <button class="accordion-button">
-                        <span>3. "인생은 GTL(Grand Theft Life) 게임이다!" 🎮</span>
-                        <span class="accordion-icon">+</span>
-                    </button>
-                    <div class="accordion-content">
-                        <p>인생은 마치 GTA 게임처럼, 우리가 마음껏 탐험하고 도전하며 배울 수 있는 거대한 실험실이다. 실패는 게임 오버가 아니라, 더 나은 전략을 배우는 과정일 뿐이다. 불합리한 공포를 버리고, 대담하게 원하는 것을 시도하라. 실패를 두려워하지 않는 '용기'가 혁신의 씨앗이다.</p>
+
+                <div id="dolomiti" class="city-content italy-city-content hidden">
+                    <h2 class="text-3xl font-bold mb-4 text-center">🏔️ 돌로미티 (Dolomiti): 대자연의 경이로움</h2>
+                    <div class="space-y-4">
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🌲 대표 하이킹 & 명소</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>세체다:</b> 날카로운 칼날 능선으로 유명한 포토 스팟</li>
+                                    <li><b>트레치메 디 라바레도:</b> 돌로미티의 상징, 3개의 거대한 암봉 주변 하이킹</li>
+                                    <li><b>알페 디 시우시:</b> 유럽 최대 고산 목초지의 그림 같은 풍경</li>
+                                    <li><b>브라이에스 호수:</b> 에메랄드빛 물색을 자랑하는 돌로미티의 보석</li>
+                                </ul>
+                           </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section id="musk-os" class="py-12 md:py-16">
-            <h2 class="section-title">⚙️ 엘론 머스크의 사고 OS (Operating System)</h2>
-            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">엘론 머스크는 어떻게 목표를 설정하고 달성할까? 그의 생각 시스템을 간단한 그림으로 살펴보자. 각 요소를 클릭하면 설명을 볼 수 있다.</p>
-            <div class="card max-w-4xl mx-auto p-6 md:p-10">
-                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
-                    <div class="os-box" data-os="want">🎯 원해요 박스</div>
-                    <div class="os-arrow">➕</div>
-                    <div class="os-box" data-os="reality">🌍 현실 박스</div>
-                    <div class="os-arrow">➡️</div>
-                    <div class="os-box" data-os="pool">🏊 목표 풀</div>
+            <!-- France Content -->
+            <div id="france" class="content-section hidden">
+                <div class="city-content active">
+                    <h2 class="text-3xl font-bold mb-4 text-center">🇫🇷 파리 (Paris): 예술과 낭만의 도시</h2>
+                     <div class="space-y-4">
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🏛️ 문화 & 명소</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>주요 랜드마크:</b> 에펠탑, 루브르 & 오르세 미술관, 몽마르트 언덕 & 사크레쾨르 대성당, 개선문 & 샹젤리제 거리, 시테 섬 (생트 샤펠 추천)</li>
+                                    <li><b>아름다운 산책로:</b> 마레 지구 골목길, 센 강변, 프롬나드 플랑테(공중 정원)</li>
+                                    <li><b>숨은 명소 & 전망:</b> 비르 아켐 다리(포토존), 퐁피두 센터 옥상(야경), 몽파르나스 타워(360도 전망)</li>
+                                </ul>
+                           </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🍽️ 추천 맛집</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>Le Soufflé:</b> 입에서 녹는 프랑스 정통 수플레 전문점</li>
+                                    <li><b>Bouillon Chartier:</b> 100년 전통, `비프 부르기뇽`을 저렴하게 맛볼 수 있는 곳</li>
+                                    <li><b>L'As du Fallafel (마레):</b> 줄 서서 먹는 인생 `팔라펠`</li>
+                                    <li><b>Du Pain et des Idées:</b> 파리 최고의 베이커리. `크루아상`은 꼭 맛볼 것</li>
+                                    <li><b>Les Ombres:</b> 황홀한 에펠탑 뷰와 함께 즐기는 파인 다이닝</li>
+                                </ul>
+                           </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🏨 추천 숙소</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                               <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>추천 지역:</b> 마레 지구(트렌디), 생제르맹 데 프레(낭만), 오페라 지구(편리)</li>
+                                    <li><b>Hôtel du Petit Moulin (마레):</b> 독특한 분위기와 훌륭한 가성비</li>
+                                    <li><b>Hôtel Le Walt:</b> 에펠탑 근처에 위치한 부티크 호텔</li>
+                                    <li><b>시타딘 아파트 호텔:</b> 장기 숙박 및 취사가 가능한 아파트형 호텔</li>
+                               </ul>
+                           </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>✨ 파리 여행 꿀팁</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>일요일:</b> 대부분의 상점이 문을 닫아요. 공원 산책이나 카페에서 여유를 즐기는 날로 계획해 보세요.</li>
+                                    <li><b>뮤지엄 패스:</b> 여러 미술관/박물관을 방문할 계획이라면 뮤지엄 패스 구매를 고려해 보세요.</li>
+                                </ul>
+                           </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex flex-col items-center justify-center space-y-2">
-                     <div class="os-arrow">⬇️</div>
-                     <div class="os-box" data-os="strategy">🗺️ 전략 수립 (제1원리)</div>
-                     <div class="os-arrow">🔄</div>
-                     <div class="os-box" data-os="action">🚀 실행 및 수정</div>
-                </div>
-                <div id="os-explanation" class="mt-6 p-4 bg-sky-50 rounded-lg text-sky-800 min-h-[50px]">
-                    각 박스를 클릭하여 설명을 확인하세요.
             </div>
-        </section>
 
-        <section id="reflection" class="py-12 md:py-16">
-            <h2 class="section-title">🤔 나는 셰프형? 요리사형? 자가 진단</h2>
-            <p class="text-center mb-8 max-w-2xl mx-auto text-slate-700">몇 가지 질문을 통해 자신의 생각 경향을 되돌아보는 시간을 가져보자. 정답은 없으니 솔직하게 선택하면 된다.</p>
-            <div class="max-w-2xl mx-auto space-y-6">
-                <div class="question-card">
-                    <p class="font-semibold mb-2">질문 1: 새로운 프로젝트를 시작할 때, 당신의 일반적인 접근 방식은?</p>
-                    <button class="option-button" data-question="1" data-type="cook">A. 과거 성공 사례나 업계 표준 방식을 먼저 찾아본다.</button>
-                    <button class="option-button" data-question="1" data-type="chef">B. 문제의 근본 원인부터 파악하고, 기존 방식에 의문을 제기하며 새로운 해결책을 모색한다.</button>
-                    <div class="reflection-text hidden" id="reflection-1"></div>
+            <!-- Croatia Content -->
+            <div id="croatia" class="content-section hidden">
+                <div class="text-center p-4 mb-6 bg-white rounded-lg shadow-md">
+                    <div id="croatia-nav" class="flex flex-wrap justify-center gap-2">
+                        <button data-city="zagreb" class="city-btn croatia-city active bg-teal-100 text-teal-800 py-2 px-4 rounded-md font-medium">자그레브</button>
+                        <button data-city="plitvice" class="city-btn croatia-city bg-gray-100 text-gray-800 py-2 px-4 rounded-md font-medium">플리트비체 & 소도시</button>
+                    </div>
                 </div>
-                <div class="question-card">
-                    <p class="font-semibold mb-2">질문 2: 어려운 문제에 직면했을 때, 가장 먼저 드는 생각은?</p>
-                    <button class="option-button" data-question="2" data-type="cook">A. "이걸 어떻게 해결해야 할지 막막하다. 다른 사람들은 어떻게 했지?"</button>
-                    <button class="option-button" data-question="2" data-type="chef">B. "이 문제를 해결하기 위한 가장 기본적인 요소들은 무엇일까? 어떤 가설을 세우고 검증해볼 수 있을까?"</button>
-                    <div class="reflection-text hidden" id="reflection-2"></div>
-                </div>
-                <div class="question-card">
-                    <p class="font-semibold mb-2">질문 3: 주변 사람들이 모두 "A는 불가능해"라고 말할 때, 당신의 반응은?</p>
-                    <button class="option-button" data-question="3" data-type="cook">A. "다들 그렇게 말하는 걸 보니 정말 안 되나 보다."</button>
-                    <button class="option-button" data-question="3" data-type="chef">B. "왜 불가능하다고 생각하는 걸까? 그 근거는 무엇일까? 혹시 다른 관점에서 보면 가능하지 않을까?"</button>
-                    <div class="reflection-text hidden" id="reflection-3"></div>
-                </div>
-            </div>
-        </section>
 
-        <section id="conclusion" class="py-12 md:py-16 bg-sky-700 text-white rounded-xl">
-            <h2 class="section-title text-white">🚀 당신 안의 '셰프'를 깨우세요!</h2>
-            <div class="max-w-3xl mx-auto text-center">
-                <p class="text-lg leading-relaxed mb-6">
-                    엘론 머스크처럼 생각한다는 것은 완벽한 '셰프'가 되는 것이 아니라, 우리 안의 '셰프'적 가능성을 발견하고 키워나가는 여정이다. 우리 모두는 생각하는 방식(소프트웨어)을 가지고 있으며, 이를 의식적으로 발전시킬 수 있다.
-                </p>
-                <p class="text-lg leading-relaxed mb-6">
-                    "도대체 무슨 일이 벌어지고 있는 거지?" 이 질문을 스스로에게 던지며 세상을 탐구하라. 기존의 통념에 의문을 제기하고, 제1원리에서부터 사고하며, 대담하게 실행하라. 이것이 바로 엘론 머스크가 우리에게 주는 가장 큰 영감이다.
-                </p>
-                <p class="text-xl font-bold">당신의 위대한 여정을 응원합니다!</p>
+                <div id="zagreb" class="city-content croatia-city-content active">
+                    <h2 class="text-3xl font-bold mb-4 text-center">🏰 자그레브 (Zagreb): 소박하지만 깊은 매력</h2>
+                    <div class="space-y-4">
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>📍 꼭 가봐야 할 명소</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>도심 & 구시가지:</b> 반 옐라치치 광장, 자그레브 대성당, 돌라츠 시장(붉은 파라솔), 성 마르코 성당(타일 지붕), 트칼치체바 거리(카페 거리)</li>
+                                    <li><b>휴식 & 자연:</b> 미로고이 공동묘지(아름다운 건축), 막시미르 공원</li>
+                                </ul>
+                           </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🍽️ 추천 맛집</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>대표 음식:</b> 슈트루클리(전통 만두), 체바피(발칸식 떡갈비), 자그레브 슈니첼</li>
+                                    <li><b>Pivnica Medvedgrad:</b> 자체 양조 맥주와 푸짐한 전통 음식을 함께!</li>
+                                    <li><b>Pod Zidom Bistro:</b> 현지 와인과 크로아티안 타파스를 즐기기 좋은 곳</li>
+                                    <li><b>Otto & Frank:</b> 트렌디한 분위기에서 즐기는 브런치 맛집</li>
+                                </ul>
+                           </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>🏨 추천 숙소</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>호텔 듀브로브니크:</b> 반 옐라치치 광장 바로 옆, 최고의 위치와 가성비</li>
+                                    <li><b>에스플라나드 자그레브 호텔 (5성급):</b> 클래식한 분위기의 럭셔리 호텔</li>
+                                    <li><b>Tip:</b> **도니 그라드(하부 도시)** 지역에 숙소를 잡으면 교통이 편리해요.</li>
+                                </ul>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="plitvice" class="city-content croatia-city-content hidden">
+                    <h2 class="text-3xl font-bold mb-4 text-center">🌳 플리트비체 & 소도시: 요정이 사는 숲</h2>
+                    <div class="space-y-4">
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>플리트비체 국립공원</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <p class="text-stone-700">수많은 폭포와 에메랄드빛 호수가 만들어내는 비현실적인 풍경의 유네스코 세계자연유산.</p>
+                                <p class="mt-2 text-teal-700 font-semibold">Tip: 성수기에는 관광객이 몰리기 전 아침 일찍 입장하는 것을 강력 추천합니다. 공원 근처에서 1박하며 여유롭게 탐방하는 것도 좋은 방법입니다. (입장권 온라인 예매 필수)</p>
+                           </div>
+                        </div>
+                        <div class="content-card bg-white rounded-lg shadow-sm p-4 md:p-6 cursor-pointer">
+                           <h3 class="card-header text-xl font-semibold flex justify-between items-center"><span>그 외 추천 도시</span><i class="fa fa-chevron-down"></i></h3>
+                           <div class="card-content">
+                                <ul class="list-disc list-inside space-y-2 text-stone-700">
+                                    <li><b>스플리트:</b> 로마 황제의 유적 **디오클레티아누스 궁전**이 있는 활기찬 해변 도시</li>
+                                    <li><b>로비니, 라스토케:</b> 아기자기하고 동화 같은 아름다운 소도시</li>
+                                    <li><b>사모보르:</b> 자그레브에서 당일치기로 다녀오기 좋은 곳. 달콤한 디저트 **크렘슈니타**가 유명합니다.</li>
+                                </ul>
+                           </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </section>
+
+            <!-- Chart Content -->
+            <div id="chart" class="content-section hidden">
+                 <h2 class="text-3xl font-bold mb-2 text-center">📊 도시별 여행 스타일 분석</h2>
+                 <p class="text-center text-stone-600 mb-6">나에게 맞는 여행지는 어디일까요? 도시별 특징을 한눈에 비교해보세요.</p>
+                 <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
+                    <div class="chart-container">
+                        <canvas id="travelStyleChart"></canvas>
+                    </div>
+                 </div>
+            </div>
+        </main>
     </div>
 
-    <footer class="text-center py-8 text-slate-600">
-        <p>&copy; GENERAL</p>
-    </footer>
-
     <script>
-        // Navigation
-        const navButtons = document.querySelectorAll('.nav-button');
-        const sections = document.querySelectorAll('section');
-        const hamburgerIcon = document.getElementById('hamburgerIcon');
-        const navLinks = document.getElementById('navLinks');
+        document.addEventListener('DOMContentLoaded', function () {
+            const mainNavButtons = document.querySelectorAll('#main-nav button');
+            const contentSections = document.querySelectorAll('.content-section');
+            
+            const cityNavContainers = {
+                'italy': document.querySelector('#italy-nav'),
+                'croatia': document.querySelector('#croatia-nav')
+            };
 
-        hamburgerIcon.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-        
-        navLinks.addEventListener('click', (e) => {
-            if (e.target.classList.contains('nav-button')) {
-                navLinks.classList.remove('active');
-            }
-        });
+            const cityContents = {
+                'italy': document.querySelectorAll('.italy-city-content'),
+                'croatia': document.querySelectorAll('.croatia-city-content')
+            };
 
-        window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (pageYOffset >= sectionTop - 70) { // Adjusted offset for better active state
-                    current = section.getAttribute('id');
-                }
-            });
-
-            navButtons.forEach(button => {
-                button.classList.remove('active');
-                if (button.getAttribute('href').substring(1) === current) {
-                    button.classList.add('active');
-                }
-            });
-        });
-
-        // Chef vs Cook cards
-        const cookCard = document.getElementById('cookCard');
-        const chefCard = document.getElementById('chefCard');
-        const cookDetails = cookCard.querySelector('.cook-details');
-        const chefDetails = chefCard.querySelector('.chef-details');
-        const cookPrompt = cookCard.querySelector('.cook-prompt');
-        const chefPrompt = chefCard.querySelector('.chef-prompt');
-
-        cookCard.addEventListener('click', () => {
-            cookDetails.classList.toggle('hidden');
-            cookPrompt.textContent = cookDetails.classList.contains('hidden') ? '클릭해서 자세히 보기' : '숨기기';
-        });
-        chefCard.addEventListener('click', () => {
-            chefDetails.classList.toggle('hidden');
-            chefPrompt.textContent = chefDetails.classList.contains('hidden') ? '클릭해서 자세히 보기' : '숨기기';
-        });
-
-        // Barriers cards
-        const barrierCards = document.querySelectorAll('.barrier-card');
-        barrierCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const details = card.querySelector('.barrier-details');
-                const isHidden = details.classList.contains('hidden');
-                
-                barrierCards.forEach(otherCard => {
-                    otherCard.querySelector('.barrier-details').classList.add('hidden');
-                });
-
-                if (isHidden) {
-                    details.classList.remove('hidden');
-                } else {
-                    details.classList.add('hidden');
-                }
-            });
-        });
-        
-        // Accordion
-        const accordionButtons = document.querySelectorAll('.accordion-button');
-        accordionButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const content = button.nextElementSibling;
-                const icon = button.querySelector('.accordion-icon');
-                const isContentVisible = content.style.display === 'block';
-                
-                accordionButtons.forEach(otherButton => {
-                    if (otherButton !== button) {
-                        otherButton.nextElementSibling.style.display = 'none';
-                        otherButton.querySelector('.accordion-icon').textContent = '+';
+            function switchTab(buttons, contents, targetId, activeClass) {
+                buttons.forEach(button => {
+                    if (button.dataset.target === targetId || button.dataset.city === targetId) {
+                        button.classList.add('active', activeClass);
+                        if (activeClass !== 'active') button.classList.remove('bg-gray-100', 'text-gray-800');
+                    } else {
+                        button.classList.remove('active', activeClass);
+                         if (activeClass !== 'active') button.classList.add('bg-gray-100', 'text-gray-800');
                     }
                 });
 
-                if (isContentVisible) {
-                    content.style.display = 'none';
-                    icon.textContent = '+';
-                } else {
-                    content.style.display = 'block';
-                    icon.textContent = '-';
-                }
-            });
-        });
-
-        // Musk's OS
-        const osBoxes = document.querySelectorAll('.os-box');
-        const osExplanation = document.getElementById('os-explanation');
-        const firstPrincipleInteractionDiv = document.getElementById('first-principle-interaction');
-        const explanations = {
-            want: "🎯 원해요 박스: 현재 상황을 바꾸고 싶은 간절한 목표, 열망, 비전이 담긴 곳. '인류의 미래에 기여하고 싶다'와 같은 큰 그림일 수 있다.",
-            reality: "🌍 현실 박스: 현재 내가 가진 자원, 기술 수준, 시장 상황 등 객관적인 현실을 담고 있다. 냉철한 자기 평가와 세상에 대한 이해가 필요하다.",
-            pool: "🏊 목표 풀: '원해요 박스'와 '현실 박스'가 만나는 지점. 즉, 현재 실현 가능하면서도 내가 간절히 원하는 목표들의 집합이다.",
-            strategy: "🗺️ 전략 수립 (제1원리): 목표 풀에서 선택한 목표를 달성하기 위한 구체적인 계획이다. 이때 '제1원리 추론'을 사용하여 기존의 방식이 아닌, 문제의 근본에서부터 가장 효율적인 방법을 찾는다.",
-            action: "🚀 실행 및 수정: 수립된 전략을 실제로 실행하고, 그 과정에서 얻는 새로운 정보와 데이터에 따라 끊임없이 전략을 실험하고 수정하며 목표에 다가간다. 이 과정은 반복적인 루프이다."
-        };
-
-        osBoxes.forEach(box => {
-            box.addEventListener('click', () => {
-                const key = box.dataset.os;
-                osExplanation.textContent = explanations[key] || "각 박스를 클릭하여 설명을 확인하세요.";
-                osBoxes.forEach(b => b.style.borderColor = '#0ea5e9'); 
-                box.style.borderColor = '#0284c7'; 
-
-                if (key === 'strategy') {
-                    firstPrincipleInteractionDiv.classList.remove('hidden');
-                } else {
-                    firstPrincipleInteractionDiv.classList.add('hidden');
-                }
-            });
-        });
-
-        // Self-Reflection Quiz
-        const optionButtons = document.querySelectorAll('.option-button');
-        const reflectionTextsData = {
-            q1_cook: "과거 사례나 표준을 따르는 것은 안정적일 수 있지만, 때로는 새로운 가능성을 제한할 수 있다. 기존 방식에 '왜?'라는 질문을 던져보는 것은 어떨까?",
-            q1_chef: "문제의 근본부터 파고드는 것은 '셰프'적 사고의 핵심이다! 이런 접근은 혁신적인 해결책으로 이어질 수 있다.",
-            q2_cook: "막막함을 느낄 때 다른 사람의 경험을 참고하는 것도 방법이지만, 스스로 문제를 분해하고 분석하는 힘을 기르는 것이 중요하다.",
-            q2_chef: "문제를 기본 요소로 나누고 가설을 세우는 것은 과학자적 접근이자 '셰프'의 방식이다. 복잡한 문제도 이렇게 풀어나갈 수 있다.",
-            q3_cook: "주변의 의견은 중요하지만, 때로는 집단적 통념이 진실을 가릴 수도 있다. 모두가 '아니오'라고 할 때 '왜?'라고 묻는 용기가 필요하다.",
-            q3_chef: "불가능해 보이는 상황에서도 가능성을 탐색하는 것은 '셰프'의 중요한 특징이다. 비판적 사고와 독립적 판단이 빛을 발하는 순간이다."
-        };
-
-        optionButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const question = button.dataset.question;
-                const type = button.dataset.type;
-                const reflectionTextElement = document.getElementById(`reflection-${question}`);
-                
-                document.querySelectorAll(`.option-button[data-question="${question}"]`).forEach(btn => {
-                    btn.classList.remove('selected');
+                contents.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.remove('hidden');
+                        section.classList.add('active');
+                    } else {
+                        section.classList.add('hidden');
+                        section.classList.remove('active');
+                    }
                 });
-                button.classList.add('selected');
+            }
 
-                reflectionTextElement.textContent = reflectionTextsData[`q${question}_${type}`];
-                reflectionTextElement.classList.remove('hidden');
+            mainNavButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const targetId = this.dataset.target;
+                    switchTab(mainNavButtons, contentSections, targetId, 'active');
+                });
+            });
+
+            for (const country in cityNavContainers) {
+                if (cityNavContainers[country]) {
+                    const cityButtons = cityNavContainers[country].querySelectorAll('.city-btn');
+                    cityButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                           const targetId = this.dataset.city;
+                           switchTab(cityButtons, cityContents[country], targetId, 'bg-teal-100');
+                        });
+                    });
+                }
+            }
+
+            const cardHeaders = document.querySelectorAll('.card-header');
+            cardHeaders.forEach(header => {
+                header.addEventListener('click', function () {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+                    content.classList.toggle('show');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                });
+            });
+
+            const travelStyleData = {
+                labels: ['로마', '피렌체', '파리', '자그레브', '돌로미티', '베네치아'],
+                datasets: [
+                    {
+                        label: '역사/예술',
+                        data: [10, 9, 8, 5, 1, 7],
+                        backgroundColor: 'rgba(20, 83, 45, 0.7)',
+                    },
+                    {
+                        label: '미식/맛집',
+                        data: [8, 9, 10, 6, 4, 7],
+                        backgroundColor: 'rgba(217, 119, 6, 0.7)',
+                    },
+                    {
+                        label: '자연/풍경',
+                        data: [3, 5, 4, 6, 10, 8],
+                        backgroundColor: 'rgba(22, 163, 74, 0.7)',
+                    },
+                     {
+                        label: '낭만/감성',
+                        data: [7, 8, 9, 5, 7, 10],
+                        backgroundColor: 'rgba(219, 39, 119, 0.7)',
+                    }
+                ]
+            };
+            const travelStyleChartCtx = document.getElementById('travelStyleChart').getContext('2d');
+            new Chart(travelStyleChartCtx, {
+                type: 'bar',
+                data: travelStyleData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                             ticks: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                           position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: '도시별 여행 테마 점수 (10점 만점)'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += context.parsed.x + '점';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         });
-
-        // Gemini API Integration
-        const apiKey = ""; // Provided by Canvas environment
-
-        async function callGeminiAPI(prompt, buttonElement, resultElement) {
-            const buttonText = buttonElement.querySelector('.button-text');
-            const spinner = buttonElement.querySelector('.loading-spinner');
-
-            buttonText.classList.add('hidden');
-            spinner.classList.remove('hidden');
-            buttonElement.disabled = true;
-            buttonElement.classList.add('disabled');
-            resultElement.classList.add('hidden');
-            resultElement.textContent = '';
-
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-            const payload = { contents: chatHistory };
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API 오류: ${response.status} - ${errorData.error?.message || '알 수 없는 오류'}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    resultElement.textContent = text;
-                    resultElement.classList.remove('hidden');
-                } else {
-                    resultElement.textContent = "AI로부터 응답을 받지 못했습니다. 다시 시도해 주세요.";
-                    resultElement.classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error("Gemini API 호출 중 오류 발생:", error);
-                resultElement.textContent = `오류가 발생했습니다: ${error.message}. 잠시 후 다시 시도해 주세요.`;
-                resultElement.classList.remove('hidden');
-            } finally {
-                buttonText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-                buttonElement.disabled = false;
-                buttonElement.classList.remove('disabled');
-            }
-        }
-
-        // Musk's OS - First Principle Questions
-        const getPrincipleQuestionsBtn = document.getElementById('getPrincipleQuestionsBtn');
-        const problemInput = document.getElementById('problemInput');
-        const principleQuestionsResult = document.getElementById('principleQuestionsResult');
-
-        getPrincipleQuestionsBtn.addEventListener('click', () => {
-            const problem = problemInput.value.trim();
-            if (!problem) {
-                principleQuestionsResult.textContent = "먼저 문제나 목표를 입력해주세요.";
-                principleQuestionsResult.classList.remove('hidden');
-                return;
-            }
-            const prompt = `다음 문제/목표에 대해 제1원리 사고방식으로 심층 질문 3가지를 생성해 주세요: "${problem}". 각 질문은 사용자가 문제의 근본 원인을 파악하고 기존의 가정에 도전하는 데 도움이 되어야 합니다. 간결하고 명확하게, 한국어로 질문해 주세요. 각 질문은 새 줄로 구분해주세요.`;
-            callGeminiAPI(prompt, getPrincipleQuestionsBtn, principleQuestionsResult);
-        });
-
-        // GTL Idea Expansion
-        const expandGtlIdeaBtn = document.getElementById('expandGtlIdeaBtn');
-        const gtlIdeaInput = document.getElementById('gtlIdeaInput');
-        const gtlIdeaResult = document.getElementById('gtlIdeaResult');
-
-        expandGtlIdeaBtn.addEventListener('click', () => {
-            const idea = gtlIdeaInput.value.trim();
-            if (!idea) {
-                gtlIdeaResult.textContent = "먼저 당신의 대담한 아이디어를 입력해주세요.";
-                gtlIdeaResult.classList.remove('hidden');
-                return;
-            }
-            const prompt = `다음은 사용자의 대담한 아이디어입니다: "${idea}". 이 아이디어를 구체화하고 첫 단계를 내딛는 데 도움이 될 수 있는 창의적이고 실행 가능한 제안 3가지를 엘론 머스크 스타일의 격려와 함께 한국어로 제공해주세요. 각 제안은 사용자가 고정관념을 깨고 대담하게 도전하도록 영감을 주어야 합니다. 답변은 마크다운 형식 없이 일반 텍스트로, 각 제안과 격려는 명확하게 구분하여 작성해주세요.`;
-            callGeminiAPI(prompt, expandGtlIdeaBtn, gtlIdeaResult);
-        });
-
     </script>
 </body>
 </html>
